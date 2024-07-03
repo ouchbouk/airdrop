@@ -10,15 +10,18 @@ error AlreadyClaimed();
 
 contract Airdrop is ERC20 {
     using BitMaps for BitMaps.BitMap;
-    bytes32 immutable merkleRoot;
 
+    bytes32 immutable merkleRoot;
     BitMaps.BitMap bitMap;
+
     constructor(bytes32 merkleRoot_) ERC20("TWO COIN", "TCN") {
         merkleRoot = merkleRoot_;
     }
 
     function claim(bytes32[] calldata proof, uint amount, uint index) external {
-        bytes32 leaf = keccak256(abi.encode(msg.sender, index, amount));
+        bytes32 leaf = keccak256(
+            bytes.concat(keccak256(abi.encode(msg.sender, index, amount)))
+        );
 
         if (!MerkleProof.verify(proof, merkleRoot, leaf)) revert InvalidProof();
         if (bitMap.get(index)) revert AlreadyClaimed();
